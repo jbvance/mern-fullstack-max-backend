@@ -48,8 +48,7 @@ const signup = async (req, res, next) => {
   const createdUser = new User({
     name,
     email,
-    image:
-      'https://en.wikipedia.org/wiki/File:Brad_Pitt_2019_by_Glenn_Francis.jpg',
+    image: req.file.path,
     // TODO: encrypt password before storing
     password,
     places: []
