@@ -53,7 +53,7 @@ const getPlacesByUserId = async (req, res, next) => {
   res.json({
     places: userWithPlaces.places.map((place) =>
       place.toObject({ getters: true })
-    ),
+    )
   });
 };
 
@@ -83,7 +83,7 @@ const createPlace = async (req, res, next) => {
     location: coordinates,
     image:
       'https://upload.wikimedia.org/wikipedia/commons/5/57/The_Empire_State_Building_%2812%29.jpg',
-    creator,
+    creator
   });
 
   // check for an existing user

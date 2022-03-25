@@ -52,7 +52,7 @@ const signup = async (req, res, next) => {
       'https://en.wikipedia.org/wiki/File:Brad_Pitt_2019_by_Glenn_Francis.jpg',
     // TODO: encrypt password before storing
     password,
-    places: [],
+    places: []
   });
 
   try {
@@ -84,11 +84,14 @@ const login = async (req, res, next) => {
     return next(error);
   }
 
-  res.json({ message: 'Logged In' });
+  res.json({
+    message: 'Logged In',
+    user: existingUser.toObject({ getters: true })
+  });
 };
 
 module.exports = {
   getUsers,
   signup,
-  login,
+  login
 };
