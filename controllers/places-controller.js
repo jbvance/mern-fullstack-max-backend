@@ -7,6 +7,7 @@ const getCoordsForAddress = require('../util/location');
 const Place = require('../models/place');
 const User = require('../models/user');
 const mongoose = require('mongoose');
+const { request } = require('http');
 
 const getPlaceById = async (req, res, next) => {
   const { pid } = req.params;
@@ -58,7 +59,9 @@ const getPlacesByUserId = async (req, res, next) => {
   });
 };
 
-// Create a new Place
+/***********************************************
+ * CREATE A NEW PLACE
+ **********************************************/
 const createPlace = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -68,7 +71,7 @@ const createPlace = async (req, res, next) => {
     );
   }
 
-  const { title, description, address, creator } = req.body;
+  const { title, description, address } = req.body;
 
   let coordinates;
   try {
@@ -83,13 +86,13 @@ const createPlace = async (req, res, next) => {
     address,
     location: coordinates,
     image: req.file.path,
-    creator
+    creator: req.userData.userId // this is added in checkAuth middleware
   });
 
   // check for an existing user
   let user;
   try {
-    user = await User.findById(creator);
+    user = await User.findById(req.userData.userId);
   } catch (err) {
     const error = new HttpError(
       'Creating place failed, please try again.',
@@ -120,6 +123,9 @@ const createPlace = async (req, res, next) => {
   res.status(201).json({ place: createdPlace.toObject({ getters: true }) });
 };
 
+/*********************************************************
+ * UPDATE AN EXISTING PLACE
+ *********************************************************/
 const updatePlace = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -138,6 +144,11 @@ const updatePlace = async (req, res, next) => {
     place = await Place.findById(pid);
   } catch (err) {
     const error = new HttpError('Error finding place to update', 500);
+    return next(error);
+  }
+
+  if (place.creator.toString() !== req.userData.userId) {
+    const error = new HttpError('You are not allowed to edit this place', 403);
     return next(error);
   }
 
@@ -171,6 +182,14 @@ const deletePlace = async (req, res, next) => {
   //Check whether the place exists
   if (!place) {
     const error = new HttpError(`Could not find place with id: ${pid}`, 404);
+    return next(error);
+  }
+
+  if (place.creator.id !== req.userData.userId) {
+    const error = new HttpError(
+      'You are not allowed to delete this place',
+      403
+    );
     return next(error);
   }
 
